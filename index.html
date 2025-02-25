@@ -4,96 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Log and Chatbot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        #chat-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            height: 100vh;
-            justify-content: center;
-        }
-        #chat-box {
-            width: 400px;
-            height: 500px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            overflow-y: scroll;
-        }
-        #chat-form {
-            margin-top: 20px;
-            display: flex;
-            width: 400px;
-        }
-        #user-input {
-            flex: 1;
-            padding: 10px;
-            margin-right: 10px;
-            border: 1px solid #ccc;
-        }
-        #chat-submit-btn {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-        }
-        #book-log-container {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #book-form input {
-            margin-bottom: 10px;
-        }
-        #biometric-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-        #biometric-container button {
-            margin: 5px;
-            padding: 10px 15px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Firebase Book Form -->
-    <div id="book-log-container">
-        <h3>Book Log App</h3>
-        <form id="book-form">
-            <input type="text" id="title" placeholder="Enter book title" required />
-            <input type="text" id="author" placeholder="Enter book author" required />
-            <button type="submit" id="book-submit-btn">Add Book</button>
-        </form>
-        <ul id="book-list"></ul>
-    </div>
+    <header>
+        <h1>Book Log App</h1>
+    </header>
 
-    <!-- Dialogflow Chatbot -->
-    <div id="chat-container">
-        <h2>Chatbot</h2>
-        <div id="chat-box"></div>
-        <form id="chat-form">
-            <input type="text" id="user-input" placeholder="Ask me anything..." required />
-            <button type="submit" id="chat-submit-btn">Send</button>
-        </form>
-    </div>
+    <main id="layout-container">
 
-    <!-- Biometric Authentication -->
-    <div id="biometric-container">
-        <h3>Biometric Authentication</h3>
-        <button id="register-biometric">Register Biometric</button>
-        <button id="login-biometric">Login with Biometric</button>
-    </div>
+        <!-- Biometric Authentication (Top) -->
+        <section id="biometric-container" class="section">
+            <h2>Biometric Authentication</h2>
+            <button id="register-biometric" class="biometric-btn" aria-label="Register Biometric">Register</button>
+            <button id="login-biometric" class="biometric-btn" aria-label="Login with Biometric">Login</button>
+        </section>
 
-    <!-- Firebase SDK -->
+        <!-- Book Log App (Middle) -->
+        <section id="book-log-container" class="section">
+            <h2>Book Log</h2>
+            <form id="book-form">
+                <label for="title">Book Title:</label>
+                <input type="text" id="title" placeholder="Enter book title" required aria-label="Book Title" />
+
+                <label for="author">Book Author:</label>
+                <input type="text" id="author" placeholder="Enter book author" required aria-label="Book Author" />
+
+                <button type="submit" id="book-submit-btn" aria-label="Add Book">Add</button>
+            </form>
+            <section aria-live="polite">
+                <ul id="book-list"></ul>
+            </section>
+        </section>
+
+        <!-- Chatbot (Bottom) -->
+        <section id="chat-container" class="section">
+            <h2>Chatbot</h2>
+            <div id="chat-box"></div>
+            <form id="chat-form">
+                <label for="user-input">Chat Input:</label>
+                <input type="text" id="user-input" placeholder="Ask me anything..." required aria-label="Chat Input" />
+                <button type="submit" id="chat-submit-btn" aria-label="Send Message">Send</button>
+            </form>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Book Log App</p>
+    </footer>
+
     <script type="module" src="script.js"></script>
 </body>
 </html>

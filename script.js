@@ -1,10 +1,10 @@
-// 🔹 Import Firebase & Firestore Modules
+//  Import Firebase & Firestore Modules
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
 import { 
     getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, onSnapshot, query, orderBy, getDoc
 } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
-// 🔹 Firebase Configuration
+//  Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB8ZQwVy9jBebRp-yq04a8WyZ37-FD-zE",
   authDomain: "booklogapp-95f26.firebaseapp.com",
@@ -14,48 +14,109 @@ const firebaseConfig = {
   appId: "1:155655820398:web:bb116216941b2e129d027f"
 };
 
-// 🔹 Initialize Firebase & Firestore
+//  Initialize Firebase & Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔹 Ensure DOM is Fully Loaded Before Executing
+//  Ensure DOM is Fully Loaded Before Executing because things break sometimes
 document.addEventListener("DOMContentLoaded", () => {
+  //  Bio section to WORK
+  if (window.location.protocol !== "https:" && window.location.hostname !== "localhost") {
+    alert("Biometric authentication only works on HTTPS or localhost.");
+  }
+
+  async function registerBiometric() {
+    try {
+      const publicKey = {
+        challenge: new Uint8Array([/* challenge data */]),
+        rp: { name: "Book Log App" },
+        user: { id: new Uint8Array(16), name: "user@example.com", displayName: "User" },
+        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+        timeout: 60000,
+        attestation: "direct"
+      };
+      
+      const credential = await navigator.credentials.create({ publicKey });
+      console.log('✅ Biometric registration successful!', credential);
+    } catch (error) {
+      console.error("❌ Biometric registration failed:", error);
+      displayError("❌ Biometric registration failed. Please try again.");
+    }
+  }
+
+  async function loginBiometric() {
+    try {
+      const publicKey = {
+        challenge: new Uint8Array([/* challenge data */]),
+        timeout: 60000,
+        allowCredentials: [{ id: new Uint8Array(16), type: "public-key" }]
+      };
+  
+      const assertion = await navigator.credentials.get({ publicKey });
+      console.log('✅ Biometric authentication successful!', assertion);
+    } catch (error) {
+      console.error("❌ Biometric authentication failed:", error);
+      displayError("❌ Biometric authentication failed. Please try again.");
+    }
+  }
+
+  document.getElementById("register-biometric").addEventListener("click", registerBiometric);
+  document.getElementById("login-biometric").addEventListener("click", loginBiometric);
+
+  //  Book log Section
   const bookForm = document.getElementById("book-form");
   const bookList = document.getElementById("book-list");
   const submitBtn = document.getElementById("book-submit-btn");
-  const chatForm = document.getElementById("chat-form");
-  const chatBox = document.getElementById("chat-box");
   let editingDocId = null; // Track if editing a book
 
-  // 📚 Fetch and Display Books (Real-Time Updates)
-  const fetchBooks = () => {
+  // Function to display error messages
+  function displayError(message) {
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "error-message";
+    errorDiv.textContent = message;
+    document.body.prepend(errorDiv); // Display at the top
+
+    // Remove the error message after 5 seconds
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 5000);
+  }
+
+  // Fetch & Display Books in Real-Time
+  function fetchBooks() {
     const q = query(collection(db, "books"), orderBy("timestamp", "desc"));
     onSnapshot(q, (snapshot) => {
-      bookList.innerHTML = ""; // Clear existing list
+      bookList.innerHTML = ""; // Clear list
       snapshot.forEach((doc) => {
         const book = doc.data();
         const li = document.createElement("li");
+        li.classList.add("book-item");
         li.innerHTML = `
-          <strong>${book.title}</strong> by ${book.author} 
-          <button class="edit-btn" data-id="${doc.id}">✏️ Edit</button>
-          <button class="delete-btn" data-id="${doc.id}">🗑 Delete</button>
+          <span>
+            <strong>${book.title}</strong> by ${book.author}<br>
+            <small>Added on: ${new Date(book.timestamp?.toDate()).toLocaleString()}</small>
+          </span>
+          <div class="book-actions">
+            <button class="edit-btn" data-id="${doc.id}" aria-label="Edit ${book.title}" tabindex="0">✏️</button>
+            <button class="delete-btn" data-id="${doc.id}" aria-label="Delete ${book.title}" tabindex="0">🗑</button>
+          </div>
         `;
         bookList.appendChild(li);
       });
     });
-  };
+  }
 
   fetchBooks(); // Load books on page load
 
-  // 📚 Handle Form Submission (Add/Edit Book)
+  // Handle Book Form Submission (Add/Edit)
   bookForm.addEventListener("submit", async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
 
     const title = document.getElementById("title").value.trim();
     const author = document.getElementById("author").value.trim();
 
     if (title === "" || author === "") {
-      alert("⚠️ Please enter both title and author.");
+      displayError("⚠️ Please enter both title and author.");
       return;
     }
 
@@ -63,160 +124,89 @@ document.addEventListener("DOMContentLoaded", () => {
       const timestamp = new Date();
 
       if (editingDocId) {
-        // If editing, update the existing book in Firestore
-        const bookRef = doc(db, "books", editingDocId);
-        await updateDoc(bookRef, { title, author, timestamp });
+        // Update existing book
+        await updateDoc(doc(db, "books", editingDocId), { title, author, timestamp });
         console.log("✅ Book updated!");
-        editingDocId = null; // Reset editing state
-        submitBtn.textContent = "Add Book"; // Reset button text
+        editingDocId = null;
+        submitBtn.textContent = "Add Book";
       } else {
-        // If adding a new book, save it in Firestore
+        // Add new book
         await addDoc(collection(db, "books"), { title, author, timestamp });
         console.log("✅ Book added!");
       }
 
-      bookForm.reset(); // Reset form fields
+      bookForm.reset();
     } catch (error) {
-      console.error("❌ Error adding/updating document: ", error);
+      console.error("❌ Error adding/updating book: ", error);
+      displayError("❌ Failed to save the book. Please try again.");
     }
   });
 
-  // 📚 Handle Edit & Delete Actions (Event Delegation)
+  // Handle Edit & Delete Actions
   bookList.addEventListener("click", async (e) => {
     if (e.target.classList.contains("edit-btn")) {
-      // Edit Book
       editingDocId = e.target.getAttribute("data-id");
-      const bookRef = doc(db, "books", editingDocId);
-      const bookSnap = await getDoc(bookRef);
+      const bookSnap = await getDoc(doc(db, "books", editingDocId));
       if (bookSnap.exists()) {
         const book = bookSnap.data();
         document.getElementById("title").value = book.title;
         document.getElementById("author").value = book.author;
-        submitBtn.textContent = "Update Book"; // Change button text
+        submitBtn.textContent = "Update Book";
       }
     } else if (e.target.classList.contains("delete-btn")) {
-      // Delete Book
       const bookId = e.target.getAttribute("data-id");
       if (confirm("⚠️ Are you sure you want to delete this book?")) {
-        await deleteDoc(doc(db, "books", bookId));
-        console.log("🗑 Book deleted!");
+        try {
+          await deleteDoc(doc(db, "books", bookId));
+          console.log("🗑 Book deleted!");
+        } catch (error) {
+          console.error("❌ Error deleting book: ", error);
+          displayError("❌ Failed to delete the book. Please try again.");
+        }
       }
     }
   });
 
-  // 💬 Dialogflow Chatbot Integration
+  // Chatbot Integration
+  const chatForm = document.getElementById("chat-form");
+  const chatBox = document.getElementById("chat-box");
+
   chatForm.addEventListener("submit", async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
 
     const userInput = document.getElementById("user-input").value.trim();
-    if (userInput === "") return;
+    if (!userInput) return;
 
-    displayMessage("You: " + userInput, "user");
+    displayMessage(`You: ${userInput}`, "user");
 
     try {
       const response = await fetch("https://dialogflow.googleapis.com/v2/projects/booklogapp-95f26/agent/sessions/123456:detectIntent", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer YOUR_DIALOGFLOW_ACCESS_TOKEN`,
+          "Authorization": `Seems hard to dynamically grab unless I'm working on backend stuff too.`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          queryInput: {
-            text: {
-              text: userInput,
-              languageCode: "en"
-            }
-          }
+          queryInput: { text: { text: userInput, languageCode: "en" } }
         })
       });
 
       const data = await response.json();
       const botReply = data.queryResult.fulfillmentText || "I'm not sure how to respond.";
-      displayMessage("Bot: " + botReply, "bot");
+      displayMessage(`Bot: ${botReply}`, "bot");
     } catch (error) {
-      console.error("❌ Error communicating with chatbot:", error);
+      console.error("❌ Chatbot error:", error);
       displayMessage("Bot: Sorry, I'm having trouble responding right now.", "bot");
     }
 
-    document.getElementById("user-input").value = ""; // Clear input field
+    document.getElementById("user-input").value = "";
   });
 
-  // 💬 Function to Display Messages in Chatbox
   function displayMessage(text, sender) {
     const msgDiv = document.createElement("div");
     msgDiv.textContent = text;
-    msgDiv.style.padding = "8px";
-    msgDiv.style.margin = "5px";
-    msgDiv.style.borderRadius = "5px";
-    msgDiv.style.maxWidth = "80%";
-
-    if (sender === "user") {
-      msgDiv.style.backgroundColor = "#007BFF";
-      msgDiv.style.color = "white";
-      msgDiv.style.alignSelf = "flex-end";
-    } else {
-      msgDiv.style.backgroundColor = "#f1f1f1";
-      msgDiv.style.color = "black";
-      msgDiv.style.alignSelf = "flex-start";
-    }
-
+    msgDiv.className = sender === "user" ? "chat-user" : "chat-bot";
     chatBox.appendChild(msgDiv);
-    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
-
-// Ensure the page is served over HTTPS or localhost
-if (window.location.protocol !== "https:" && window.location.hostname !== "localhost") {
-    alert("Biometric authentication only works on HTTPS or localhost.");
-}
-
-// Function to register biometric
-async function registerBiometric() {
-    try {
-      const publicKey = {
-        challenge: new Uint8Array([/* Your challenge data */]),
-        rp: {
-          name: "Book Log App"
-        },
-        user: {
-          id: new Uint8Array(16),
-          name: "user@example.com",
-          displayName: "User"
-        },
-        pubKeyCredParams: [
-          { type: "public-key", alg: -7 }, // ES256
-          { type: "public-key", alg: -257 } // RS256
-        ],
-        timeout: 60000,
-        attestation: "direct"
-      };
-      
-      const credential = await navigator.credentials.create({ publicKey });
-      console.log('Biometric registration successful!', credential);
-    } catch (error) {
-      console.error("Biometric registration failed:", error);
-    }
-  }
-  
-  // Function to authenticate using biometric
-  async function loginBiometric() {
-    try {
-      const publicKey = {
-        challenge: new Uint8Array([/* Your challenge data */]),
-        timeout: 60000,
-        allowCredentials: [{
-          id: new Uint8Array(16),
-          type: "public-key",
-        }]
-      };
-  
-      const assertion = await navigator.credentials.get({ publicKey });
-      console.log('Biometric authentication successful!', assertion);
-    } catch (error) {
-      console.error("Biometric authentication failed:", error);
-    }
-  }
-  
-  // Add event listeners to buttons
-  document.getElementById("register-biometric").addEventListener("click", registerBiometric);
-  document.getElementById("login-biometric").addEventListener("click", loginBiometric);
 });

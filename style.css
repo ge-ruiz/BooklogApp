@@ -10,15 +10,47 @@ body {
     align-items: center;
 }
 
-/* Book Log Section */
-#book-log-container {
+/* Layout Structure */
+#layout-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80%;
+    max-width: 800px;
+}
+
+/* Section Styling */
+.section {
     background: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    width: 400px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
+/* Biometric Authentication */
+#biometric-container {
+    text-align: center;
+}
+
+.biometric-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #218838; /* Darker green for better contrast?? */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.biometric-btn:hover {
+    background-color: #1e7e34;
+}
+
+/* Book Log */
 #book-form input {
     width: 100%;
     padding: 8px;
@@ -27,31 +59,48 @@ body {
     border-radius: 5px;
 }
 
-button {
-    width: 100%;
+/* Book List */
+#book-list {
+    list-style: none;
+    padding: 0;
+}
+
+.book-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
     padding: 10px;
-    background-color: #007BFF;
+    margin-top: 5px;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Buttons inside book list */
+.book-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.book-actions button {
+    padding: 5px 10px;
+    font-size: 14px;
+    background-color: #0069d9; /* Darker blue for better contrast */
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 3px;
     cursor: pointer;
-    margin-top: 10px;
 }
 
-button:hover {
-    background-color: #0056b3;
+.book-actions .delete-btn {
+    background-color: #c82333; /* Darker red for better contrast */
 }
 
-/* Chatbot Section */
-#chat-container {
-    margin-top: 20px;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    width: 400px;
+.book-actions button:hover {
+    opacity: 0.8;
 }
 
+/* Chatbot */
 #chat-box {
     height: 400px;
     overflow-y: auto;
@@ -72,25 +121,43 @@ button:hover {
     border: 1px solid #ccc;
 }
 
-/* Biometric Buttons */
-#biometric-auth {
-    margin-top: 20px;
-    text-align: center;
+/* Focus Styles for Accessibility */
+button:focus, input:focus {
+    outline: 2px solid #007BFF;
+    outline-offset: 2px;
 }
 
-.biometric-btn {
-    width: 90%;
-    background-color: #28a745;
+/* Chat Messages */
+.chat-user {
+    background-color: #007BFF;
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
     margin: 5px 0;
 }
 
-.biometric-btn:hover {
-    background-color: #218838;
+.chat-bot {
+    background-color: #f1f1f1;
+    color: #333;
+    padding: 8px;
+    border-radius: 5px;
+    margin: 5px 0;
+}
+
+/* Error Messages */
+.error-message {
+    background-color: #ffebee; /* Light red background */
+    color: #c62828; /* Dark red text */
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive Design */
-@media (max-width: 480px) {
-    #book-log-container, #chat-container {
+@media (max-width: 768px) {
+    #layout-container {
         width: 90%;
     }
 }
